@@ -180,3 +180,10 @@ To verify the installation and data pipeline at any time:
 - **Indian Retail Context**: Formatted natively in Indian Rupees (`₹1,54,060` with Lakhs / Thousands conventions).
 - **Zero Hallucination**: No external AI API key or network call is required; decisions are auditable, explainable, and deterministic.
 - **Instant Mutation & Reactivity**: Adding a sale immediately updates inventory stock levels and triggers real-time recalculations across all dashboard KPIs and recommendations.
+
+
+npm run seed
+
+npm run dev
+
+
