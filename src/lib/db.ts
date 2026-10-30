@@ -36,13 +36,36 @@ declare global {
 
 export function getDb(): Database.Database {
   if (!global.__dbInstance) {
-    const db = new Database(DB_PATH);
-    // Performance and integrity tuning
-    db.pragma('journal_mode = WAL');
-    db.pragma('foreign_keys = ON');
+    let db: Database.Database;
 
-    // Run migrations and initial seed check
-    seedDatabase(db, false);
+    try {
+      db = new Database(DB_PATH);
+      db.pragma('journal_mode = WAL');
+      db.pragma('foreign_keys = ON');
+      seedDatabase(db, false);
+    } catch (err) {
+      console.error(`Database initialization at ${DB_PATH} failed, falling back to /tmp/data:`, err);
+      const fallbackDir = path.join('/tmp', 'data');
+      if (!fs.existsSync(fallbackDir)) {
+        try {
+          fs.mkdirSync(fallbackDir, { recursive: true });
+        } catch (e) {
+          console.error('Could not create fallback directory:', e);
+        }
+      }
+      const fallbackPath = path.join(fallbackDir, 'small_business_brain.db');
+      if (fs.existsSync(SEEDED_SOURCE) && !fs.existsSync(fallbackPath)) {
+        try {
+          fs.copyFileSync(SEEDED_SOURCE, fallbackPath);
+        } catch (e) {
+          console.warn('Could not copy seeded db to fallback path:', e);
+        }
+      }
+      db = new Database(fallbackPath);
+      db.pragma('journal_mode = WAL');
+      db.pragma('foreign_keys = ON');
+      seedDatabase(db, false);
+    }
 
     global.__dbInstance = db;
   }
